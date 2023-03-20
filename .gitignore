@@ -1,0 +1,15 @@
+*.o
+*.swp
+*.cmd
+tags
+.config
+.config*
+*.bin
+*.iso
+*.syms
+*.bc
+*.ll
+
+# Other Nautilus stuff
+.kconfig.d
+nautilus.secs

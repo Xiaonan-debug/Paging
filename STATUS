@@ -1,0 +1,81 @@
+Task5:
+
+1. 
+Explain what your data structure for the memory map / region set is. 
+What are the costs to insert/remove/change/search for regions?
+
+(1) We apply a simple linked list to store all the added region sets, that is, we use a "nk_space_region_t" type data member
+in each node to store the region, and a "region_node_t*" type pointer point to the next node with the same data structure.
+
+(2) Costs for add/remove/change/search are generally all O(n).
+For add region, we iterate through all region we stored, and only if no overlapping, we add/insert the region to the head of the linked list. 
+For remove/change/search, we all need to do the full iteration from head to end to find the target region we want.
+
+
+
+2. Explain how your implementation handles the following situations/questions:
+
+a).
+add_region that has a virtual memory overlap with an existing region in the memory map
+
+Algorithm will skip the region we try to add and return -1 which is an error, since virtual memory overlapping is not allowed. 
+Through the iteration of the whole linked list, once we find any existing region's virtual address overlapped, we stop and return the error immediately.
+
+
+
+b).
+add_region that has a physical memory overlap with an existing region in the memory map
+
+Algorithm allow this operation, and will successfully add the region. 
+When iterating the linked list, we only compare the virtual address of the added region with existing ones.
+
+
+
+c).
+move_region on the current thread’s address space where the move would end up causing a
+physical memory overlap. This is for a move involving multiple pages.
+
+Move region operation will find the certain region, change its physical address to the new one, and drill the page table. 
+It still allows physical overlapping, which will eventually looks like two region with different virtual address but end up with same physical address, 
+which is somewhat like add two eager regions in the "add_region" operation.
+
+
+
+d).
+protect_region on a non-existent region. How do you find out it is non-existent?
+
+We do the iteration from head to end through the linked list that stored all the exsiting regions. 
+If the iteration finishes, and the tracing pointer ends up a NULL, we don't find the target region. 
+In such a case, we return -1 immediately, which is an error means the target region is not existing.
+
+
+
+e).
+when is it necessary to flush the whole TLB (move to cr3) ?
+
+When we have a full modification/addition/removement or any other operation towards a entire set of page table, 
+for instance, if we successfully add a new region and drill its corresponding page table.
+
+
+
+f).
+when is it necessary to flush a single page from the TLB (invlpg) ?
+
+When we only want a partial modification/addition/removement or any other operation towards our page table, 
+for instance, if we do "remove_region", we only modify our inner data structure, and change "present value" for corresponding entries.
+
+
+
+g).
+what happens if a valid delete_region request is for a region that contains %rip? What
+will happen after the paging library code completes?
+
+%rip (instruction pointer register) points to the next instruction to execute.  
+
+- After the delete_region request, nothing happens. 
+This is because our implementation for remove_region only modifies our inner data structure and the page tables for the deleted region,
+while the data in the physical address leaves unchanged.
+
+- After the paging library code completes,
+the %rip could not be accessed through the virtual addresses in the deleted region, unless we provide a new region.
+The execution of code will not be influenced since we don't change data in the physical address.

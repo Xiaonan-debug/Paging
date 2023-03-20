@@ -1,0 +1,3 @@
+#! /usr/bin/env bash
+
+make isoimage && /home/software/qemu4/bin/qemu-system-x86_64 -smp 2 -m 2048 -vga std -serial stdio -cdrom nautilus.iso
